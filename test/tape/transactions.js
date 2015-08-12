@@ -13,8 +13,8 @@ module.exports = function(knex) {
         t.integer('id')
         t.string('name')
       })
-      .then(function() { 
-        t.end() 
+      .then(function() {
+        t.end()
       })
   })
 
@@ -46,14 +46,14 @@ module.exports = function(knex) {
   })
 
   test('transaction savepoint', function(t) {
-    
+
     return knex.transaction(function(trx) {
-      
+
       return trx.insert({id: 1, name: 'A'}).into('test_table').then(function() {
-        
+
         // Nested transaction (savepoint)
         return trx.transaction(function(trx2) {
-          
+
           // Insert and then roll back the savepoint
           return trx2.table('test_table').insert({id: 2, name: 'B'}).then(function() {
             return trx2('test_table').then(function(results) {
@@ -75,14 +75,14 @@ module.exports = function(knex) {
         t.equal(results.length, 1, 'One row inserted')
       })
     })
-  
+
   })
 
   test('#625 - streams/transactions', 'postgresql', function(t) {
 
     var cid, queryCount = 0;
 
-    return knex.transaction(function(tx) { 
+    return knex.transaction(function(tx) {
       async.eachSeries([
         'SET join_collapse_limit to 1',
         'SET enable_nestloop = off'
@@ -114,21 +114,21 @@ module.exports = function(knex) {
   })
 
   test('#785 - skipping extra transaction statements after commit / rollback', function(t) {
-    
+
     var queryCount = 0
 
-    return knex.transaction(function(trx) {    
+    return knex.transaction(function(trx) {
       knex('test_table')
         .transacting(trx)
         .insert({name: 'Inserted before rollback called.'})
-        .then(function() { 
+        .then(function() {
           trx.rollback(new Error('Rolled back'));
         })
         .then(function() {
           return knex('test_table')
             .transacting(trx)
             .insert({name: 'Inserted after rollback called.'})
-            .then(function(resp) { 
+            .then(function(resp) {
               t.error(resp)
             })
             .catch(function() {})
@@ -153,11 +153,11 @@ module.exports = function(knex) {
           t.increments('id').primary();
           t.string('name').unique().notNull();
         });
-      })  
+      })
     })
     .finally(function() {
       return knex.schema.dropTableIfExists('ages')
-    });    
+    });
   });
 
   test('#832 - exceptions in transaction container', function(t) {
